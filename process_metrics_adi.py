@@ -359,6 +359,37 @@ def clsupd(jcls,uc,db):
     #mylog.logm('INFO',q1)
 
     clsrow = cur.fetchone()
+    COLUMN_NAMES = {  0 : "CLUSTER_STATE",
+                      1 : "CLOUDSQLCONFIGURED",
+                      2 : "NUMBEROFNODES",
+                      3 : "CLUSTER_VERSION",
+                      4 : "CM_VERSION",
+                      5 : "CDH_VERSION",
+                      6 : "CSQL_VERSION",
+                      7 : "BDSIMAGE_VERSION",
+                      8 : "BDSVERSION",
+                      9 : "OSVERSION",
+                      10 : "DBVERSION",
+                      11 : "BDCELLVERSION"  }
+
+    aq1_arr = []
+    aq2_arr = []
+    for i in COLUMN_NAMES:
+        col_name = COLUMN_NAMES[i]
+        jcls_col = jcls[col_name]
+        if clsrow[i] and clsrow[i] != jcls_col:
+            aq1 = "Update bds_clusterinfo set {} = '{}' where CLUSTER_OCID ='{}'".format(col_name, jcls_col, jcls["CLUSTER_OCID"])
+            aq2 = "Insert into bds_clusterinfo_logs(CLUSTER_OCID,CLUSTER_NAME,OLD_VALUE,NEW_VALUE,COL_CHANGE,COMMENTS,TENANT_OCID,CUSTOMERNAME) values ('{}','{}','{}','{}','{}','{}','{}','{}')".format(jcls["CLUSTER_OCID"],jcls_col, clsrow[0], jcls_col, col_name, "{} Change".format(col_name) ,jcls["TENANT_OCID"],jcls["CUSTOMERNAME"])
+            aq1_arr.append(aq1)
+            aq2_arr.append(aq2)
+            updflag=True
+    aq1_str = '\n'.join(aq1_arr)
+    aq2_str = '\n'.join(aq2_arr)
+    cur.execute(aq1_str)
+    cur.execute(aq2_str)
+    db.commit()
+
+    """
     if clsrow[0] != jcls["CLUSTER_STATE"] and clsrow[0]:
         aq1 = "update bds_clusterinfo set CLUSTER_STATE = '{}' where CLUSTER_OCID='{}'".format(jcls["CLUSTER_STATE"],jcls["CLUSTER_OCID"])
         aq2 = "Insert into bds_clusterinfo_logs(CLUSTER_OCID,CLUSTER_NAME,OLD_VALUE,NEW_VALUE,COL_CHANGE,COMMENTS,TENANT_OCID,CUSTOMERNAME) values ('{}','{}','{}','{}','{}','{}','{}','{}')".format(jcls["CLUSTER_OCID"],jcls["CLUSTER_NAME"],clsrow[0],jcls["CLUSTER_STATE"],"CLUSTER_STATE", "Cluster State Change",jcls["TENANT_OCID"],jcls["CUSTOMERNAME"])
@@ -460,9 +491,11 @@ def clsupd(jcls,uc,db):
           cur.execute(aq2)
 
         updflag=True
-
-
+    
     db.commit()
+
+    """
+    
     if updflag:
        uc+=1
     return uc
@@ -535,6 +568,34 @@ def updnodes(jnds,un,db):
     q1="select NODESTATE,DISPLAYNAME,SHAPE,NODE_TYPE,HOST_LABEL,BLOCKVOLUMESIZE from bds_nodeinfo where CLUSTER_OCID='{}'and NODE_INSTANCEID='{}'".format(jnds["CLUSTER_OCID"],jnds["NODE_INSTANCEID"])
     cur.execute(q1)
     clsrow = cur.fetchone()
+
+    COLUMN_NAMES = {  0 : "NODESTATE",
+                      1 : "DISPLAYNAME",
+                      2 : "SHAPE",
+                      3 : "NODE_TYPE",
+                      4 : "HOST_LABEL",
+                      5 : "BLOCKVOLUMESIZE" }
+
+    aq1_arr = []
+    aq2_arr = []
+    for i in COLUMN_NAMES:
+        col_name = COLUMN_NAMES[i]
+        jnds_col = jnds[col_name]
+        if clsrow[i] and clsrow[i] != jnds_col:
+            aq1 = "Update bds_nodeinfo set {} = '{}' where CLUSTER_OCID ='{}'".format(col_name, jnds_col, jnds["CLUSTER_OCID"])
+            aq2 = "Insert into bds_clusterinfo_logs(CLUSTER_OCID,CLUSTER_NAME,OLD_VALUE,NEW_VALUE,COL_CHANGE,COMMENTS,TENANT_OCID,CUSTOMERNAME) values ('{}','{}','{}','{}','{}','{}','{}','{}')".format(jnds["CLUSTER_OCID"],jnds_col, clsrow[0], jnds_col, col_name, "{} Change".format(col_name), jnds["TENANT_OCID"], jnds["CUSTOMERNAME"])
+            aq1_arr.append(aq1)
+            aq2_arr.append(aq2)
+            updflag=True
+    aq1_str = '\n'.join(aq1_arr)
+    aq2_str = '\n'.join(aq2_arr)
+    cur.execute(aq1_str)
+    cur.execute(aq2_str)
+    db.commit()
+
+
+
+    """
     if clsrow[0]:
         if clsrow[0] != jnds["NODESTATE"]:
             aq1="update bds_nodeinfo set NODESTATE='{}' where CLUSTER_OCID='{}' and NODE_INSTANCEID='{}'".format(jnds["NODESTATE"],jnds["CLUSTER_OCID"],jnds["NODE_INSTANCEID"])
@@ -584,6 +645,8 @@ def updnodes(jnds,un,db):
         mylog.logm('INFO',aq1)
         updflag=True
     db.commit()
+    """
+    
     if updflag:
        un+=1
     return un
