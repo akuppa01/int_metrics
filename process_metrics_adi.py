@@ -592,7 +592,7 @@ def updnodes(jnds,un,db):
     cur.execute(q1)
     clsrow = cur.fetchone()
 
-    
+    """
     COLUMN_NAMES = {  0 : "NODESTATE",
                       1 : "DISPLAYNAME",
                       2 : "SHAPE",
@@ -629,7 +629,7 @@ def updnodes(jnds,un,db):
             aq2 = "Insert into bds_clusterinfo_logs(CLUSTER_OCID,CLUSTER_NAME,OLD_VALUE,NEW_VALUE,COL_CHANGE,COMMENTS,TENANT_OCID,CUSTOMERNAME) values ('{}','{}','{}','{}','{}','{}','{}','{}')".format(jnds["CLUSTER_OCID"],jnds["CLUSTER_NAME"],clsrow[0],jnds["NODESTATE"],"NODESTATE", "Node State Change",jnds["TENANT_OCID"],jnds["CUSTOMERNAME"])
             cur.execute(aq2)
             updflag=True
-            db.commit()
+            # db.commit()
     if clsrow[1] != jnds["DISPLAYNAME"] and clsrow[1]:
         aq1="update bds_nodeinfo set DISPLAYNAME='{}' where CLUSTER_OCID='{}' and NODE_INSTANCEID='{}'".format(jnds["DISPLAYNAME"],jnds["CLUSTER_OCID"],jnds["NODE_INSTANCEID"])
         cur.execute(aq1)
@@ -638,7 +638,7 @@ def updnodes(jnds,un,db):
         cur.execute(aq2)
 
         updflag=True
-        db.commit()
+        # db.commit()
     if clsrow[2] != jnds["SHAPE"] and clsrow[2]:
         aq1="update bds_nodeinfo set SHAPE='{}' where CLUSTER_OCID='{}' and NODE_INSTANCEID='{}'".format(jnds["SHAPE"],jnds["CLUSTER_OCID"],jnds["NODE_INSTANCEID"])
         cur.execute(aq1)
@@ -646,21 +646,21 @@ def updnodes(jnds,un,db):
         aq2 = "Insert into bds_clusterinfo_logs(CLUSTER_OCID,CLUSTER_NAME,OLD_VALUE,NEW_VALUE,COL_CHANGE,COMMENTS,TENANT_OCID,CUSTOMERNAME) values ('{}','{}','{}','{}','{}','{}','{}','{}')".format(jnds["CLUSTER_OCID"],jnds["CLUSTER_NAME"],clsrow[2],jnds["SHAPE"],"SHAPE", "Node Shape Change",jnds["TENANT_OCID"],jnds["CUSTOMERNAME"])
         cur.execute(aq2)
         updflag=True
-        db.commit()
+        # db.commit()
     if clsrow[3] != jnds["NODE_TYPE"] and clsrow[3]:
         aq1="update bds_nodeinfo set NODE_TYPE='{}' where CLUSTER_OCID='{}' and NODE_INSTANCEID='{}'".format(jnds["NODE_TYPE"],jnds["CLUSTER_OCID"],jnds["NODE_INSTANCEID"])
         cur.execute(aq1)
         aq2 = "Insert into bds_clusterinfo_logs(CLUSTER_OCID,CLUSTER_NAME,OLD_VALUE,NEW_VALUE,COL_CHANGE,COMMENTS,TENANT_OCID,CUSTOMERNAME) values ('{}','{}','{}','{}','{}','{}','{}','{}')".format(jnds["CLUSTER_OCID"],jnds["CLUSTER_NAME"],clsrow[3],jnds["NODE_TYPE"],"NODE_TYPE", "Node type Change",jnds["TENANT_OCID"],jnds["CUSTOMERNAME"])
         cur.execute(aq2)
         updflag=True
-        db.commit()
+        # db.commit()
     if clsrow[4] != jnds["HOST_LABEL"] and clsrow[4]:
         aq1="update bds_nodeinfo set HOST_LABEL='{}' where CLUSTER_OCID='{}' and NODE_INSTANCEID='{}'".format(jnds["HOST_LABEL"],jnds["CLUSTER_OCID"],jnds["NODE_INSTANCEID"])
         cur.execute(aq1)
         aq2 = "Insert into bds_clusterinfo_logs(CLUSTER_OCID,CLUSTER_NAME,OLD_VALUE,NEW_VALUE,COL_CHANGE,COMMENTS,TENANT_OCID,CUSTOMERNAME) values ('{}','{}','{}','{}','{}','{}','{}','{}')".format(jnds["CLUSTER_OCID"],jnds["CLUSTER_NAME"],clsrow[4],jnds["HOST_LABEL"],"HOST_LABEL", "Node label Change",jnds["TENANT_OCID"],jnds["CUSTOMERNAME"])
         cur.execute(aq2)
         updflag=True
-        db.commit()
+        # db.commit()
     if str(clsrow[5]) != str(jnds["BLOCKVOLUMESIZE"]) and clsrow[5]:
         mylog.logm('INFO',jnds["BLOCKVOLUMESIZE"])
         aq1="update bds_nodeinfo set BLOCKVOLUMESIZE='{}' where CLUSTER_OCID='{}' and NODE_INSTANCEID='{}'".format(jnds["BLOCKVOLUMESIZE"],jnds["CLUSTER_OCID"],jnds["NODE_INSTANCEID"])
@@ -671,7 +671,7 @@ def updnodes(jnds,un,db):
         updflag=True
     
     db.commit()
-    """
+    
 
     if updflag:
        un+=1
