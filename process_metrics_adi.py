@@ -103,6 +103,7 @@ def process_clusters(fname,reg,db):
     uc=0
     tc=0
     if jdata:
+        mylog.logm('ADI', "jdata lo")
         for cls in jdata:
             for k in cls.keys():
               if cls[k] is None:
@@ -154,6 +155,7 @@ def process_clusters(fname,reg,db):
             cname=jcls["CUSTOMERNAME"]
 
             if clsrow is None :
+                mylog.logm('ADI', "if statement lo")
                 if cls["customer"]:
                     tc,cname=process_tenant(cls,reg,db,tc)
                 iq="Insert into bds_clusterinfo (CLUSTER_OCID,CLUSTER_NAME, CLUSTER_STATE, HA_CLUSTER, SECURE_CLUSTER, CLOUDSQLCONFIGURED, CLUSTER_VERSION, CUSTOMERVCN_OCID, CUSTOMERSUBNET_OCID, CUSTOMERCOMPARTMENT_OCID, NUMBEROFNODES, CREATEDBY, TIMECREATED, CLUSTER_REGION,TENANT_OCID,CUSTOMERNAME,WORKER_SHAPE,TOTALCORE_COUNT,TOTALBLOCKSTORAGE,DISPLAYNAME,BDCELLVERSION,OSVERSION,DBVERSION,CSQL_VERSION,BDSVERSION,CM_VERSION) values ('{}','{}','{}','{}','{}','{}','{}','{}','{}','{}',{},'{}','{}','{}','{}','{}','{}',{},{},'{}','{}','{}','{}','{}','{}','{}')".format(jcls["CLUSTER_OCID"],jcls["CLUSTER_NAME"],jcls["CLUSTER_STATE"],jcls["HA_CLUSTER"],jcls["SECURE_CLUSTER"],jcls["CLOUDSQLCONFIGURED"],jcls["CLUSTER_VERSION"],jcls["CUSTOMERVCN_OCID"],jcls["CUSTOMERSUBNET_OCID"],jcls["CUSTOMERCOMPARTMENT_OCID"],jcls["NUMBEROFNODES"],jcls["CREATEDBY"],jcls["TIMECREATED"],jcls["CLUSTER_REGION"],jcls["TENANT_OCID"],cname,jcls["CLSSHAPE"],jcls["CLSCORE"],jcls["BLKSTR"],jcls["DISPLAYNAME"],jcls["BDCELLVERSION"],jcls["OSVERSION"],jcls["DBVERSION"],jcls["CSQL_VERSION"],jcls["BDSVERSION"],jcls["CM_VERSION"])
@@ -168,6 +170,7 @@ def process_clusters(fname,reg,db):
                 #mylog.logm('INFO',"IN IF")
                 #tc=process_tenant(cls,reg,db,tc)
             else:
+                mylog.logm('ADI', "else statement lo")
                 mylog.logm('INFO',"select CLUSTER_STATE, CLOUDSQLCONFIGURED , NUMBEROFNODES, CLUSTER_VERSION from bds_clusterinfo where CLUSTER_OCID='{}'".format(jcls["CLUSTER_OCID"]))
                 uc=clsupd(jcls,uc,db)
                 #tc,cname=process_tenant(cls,reg,db,tc)
@@ -350,6 +353,7 @@ def clsupd(jcls,uc,db):
     Display name, cluster state, cloudsqlconfigured,numberofnodes,cm_version,cluster_version,cdh_version,csql_version,bdsimage_version
   Columns need to check for updates BDCELLVERSION,OSVERSION,DBVERSION,BDSVERSION
     '''
+    mylog.logm('ADI', "*****  in clsupd  *****")
     #mylog.logm('INFO',"IN CLSUPD")
     updflag=False
     cur=db.cursor()
@@ -359,6 +363,8 @@ def clsupd(jcls,uc,db):
     #mylog.logm('INFO',q1)
 
     clsrow = cur.fetchone()
+
+    
     COLUMN_NAMES = {  0 : "CLUSTER_STATE",
                       1 : "CLOUDSQLCONFIGURED",
                       2 : "NUMBEROFNODES",
@@ -372,24 +378,36 @@ def clsupd(jcls,uc,db):
                       10 : "DBVERSION",
                       11 : "BDCELLVERSION"  }
 
-    aq1_arr = []
-    aq2_arr = []
-    for i in COLUMN_NAMES:
-        col_name = COLUMN_NAMES[i]
-        jcls_col = jcls[col_name]
-        if clsrow[i] and clsrow[i] != jcls_col:
-            aq1 = "Update bds_clusterinfo set {} = '{}' where CLUSTER_OCID ='{}'".format(col_name, jcls_col, jcls["CLUSTER_OCID"])
-            aq2 = "Insert into bds_clusterinfo_logs(CLUSTER_OCID,CLUSTER_NAME,OLD_VALUE,NEW_VALUE,COL_CHANGE,COMMENTS,TENANT_OCID,CUSTOMERNAME) values ('{}','{}','{}','{}','{}','{}','{}','{}')".format(jcls["CLUSTER_OCID"],jcls_col, clsrow[0], jcls_col, col_name, "{} Change".format(col_name) ,jcls["TENANT_OCID"],jcls["CUSTOMERNAME"])
-            aq1_arr.append(aq1)
-            aq2_arr.append(aq2)
-            updflag=True
-    aq1_str = '\n'.join(aq1_arr)
-    aq2_str = '\n'.join(aq2_arr)
-    cur.execute(aq1_str)
-    cur.execute(aq2_str)
-    db.commit()
+    try :
+      aq1_arr = []
+      aq2_arr = []
+
+      mylog.logm('ADI', "*****  clsups clsrow len = {}  *****".format(clsrow.count))
+
+      for i in COLUMN_NAMES:
+          mylog.logm('ADI', "*****  clsups loop index = {}  *****".format(i))
+          col_name = COLUMN_NAMES[i]
+          jcls_col = jcls[col_name]
+          if clsrow[i] and clsrow[i] != jcls_col:
+            
+              mylog.logm('ADI', "clsups column loop {}".format(col_name))
+              aq1 = "Update bds_clusterinfo set {} = '{}' where CLUSTER_OCID ='{}'".format(col_name, jcls_col, jcls["CLUSTER_OCID"])
+              aq2 = "Insert into bds_clusterinfo_logs(CLUSTER_OCID,CLUSTER_NAME,OLD_VALUE,NEW_VALUE,COL_CHANGE,COMMENTS,TENANT_OCID,CUSTOMERNAME) values ('{}','{}','{}','{}','{}','{}','{}','{}')".format(jcls["CLUSTER_OCID"],jcls_col, clsrow[0], jcls_col, col_name, "{} Change".format(col_name) ,jcls["TENANT_OCID"],jcls["CUSTOMERNAME"])
+              aq1_arr.append(aq1)
+              aq2_arr.append(aq2)
+              updflag=True
+      mylog.logm('ADI', "*****  clsups loop if ran {} times  *****".format(aq1_arr.count))
+      aq1_str = '\n'.join(aq1_arr)
+      aq2_str = '\n'.join(aq2_arr)
+      cur.execute(aq1_str)
+      cur.execute(aq2_str)
+      db.commit()
+    except:
+      mylog.logm('ADI', "*****  clsups error  *****")
+
 
     """
+    
     if clsrow[0] != jcls["CLUSTER_STATE"] and clsrow[0]:
         aq1 = "update bds_clusterinfo set CLUSTER_STATE = '{}' where CLUSTER_OCID='{}'".format(jcls["CLUSTER_STATE"],jcls["CLUSTER_OCID"])
         aq2 = "Insert into bds_clusterinfo_logs(CLUSTER_OCID,CLUSTER_NAME,OLD_VALUE,NEW_VALUE,COL_CHANGE,COMMENTS,TENANT_OCID,CUSTOMERNAME) values ('{}','{}','{}','{}','{}','{}','{}','{}')".format(jcls["CLUSTER_OCID"],jcls["CLUSTER_NAME"],clsrow[0],jcls["CLUSTER_STATE"],"CLUSTER_STATE", "Cluster State Change",jcls["TENANT_OCID"],jcls["CUSTOMERNAME"])
@@ -496,8 +514,12 @@ def clsupd(jcls,uc,db):
 
     """
     
+    
+    
     if updflag:
        uc+=1
+    
+    mylog.logm('ADI', "*****  clsups exit  *****")
     return uc
 
 @timing
@@ -563,38 +585,41 @@ def updnodes(jnds,un,db):
     '''
     Display Name, Node state, shape,blockvolumesize,Node Type,Host label
     '''
+    mylog.logm('ADI', "upnodes function")
     updflag=False
     cur=db.cursor()
     q1="select NODESTATE,DISPLAYNAME,SHAPE,NODE_TYPE,HOST_LABEL,BLOCKVOLUMESIZE from bds_nodeinfo where CLUSTER_OCID='{}'and NODE_INSTANCEID='{}'".format(jnds["CLUSTER_OCID"],jnds["NODE_INSTANCEID"])
     cur.execute(q1)
     clsrow = cur.fetchone()
 
+    
     COLUMN_NAMES = {  0 : "NODESTATE",
                       1 : "DISPLAYNAME",
                       2 : "SHAPE",
                       3 : "NODE_TYPE",
                       4 : "HOST_LABEL",
                       5 : "BLOCKVOLUMESIZE" }
-
-    aq1_arr = []
-    aq2_arr = []
-    for i in COLUMN_NAMES:
-        col_name = COLUMN_NAMES[i]
-        jnds_col = jnds[col_name]
-        if clsrow[i] and clsrow[i] != jnds_col:
-            aq1 = "Update bds_nodeinfo set {} = '{}' where CLUSTER_OCID ='{}'".format(col_name, jnds_col, jnds["CLUSTER_OCID"])
-            aq2 = "Insert into bds_clusterinfo_logs(CLUSTER_OCID,CLUSTER_NAME,OLD_VALUE,NEW_VALUE,COL_CHANGE,COMMENTS,TENANT_OCID,CUSTOMERNAME) values ('{}','{}','{}','{}','{}','{}','{}','{}')".format(jnds["CLUSTER_OCID"],jnds_col, clsrow[0], jnds_col, col_name, "{} Change".format(col_name), jnds["TENANT_OCID"], jnds["CUSTOMERNAME"])
-            aq1_arr.append(aq1)
-            aq2_arr.append(aq2)
-            updflag=True
-    aq1_str = '\n'.join(aq1_arr)
-    aq2_str = '\n'.join(aq2_arr)
-    cur.execute(aq1_str)
-    cur.execute(aq2_str)
-    db.commit()
-
-
-
+    try: 
+      aq1_arr = []
+      aq2_arr = []
+      for i in COLUMN_NAMES:
+          col_name = COLUMN_NAMES[i]
+          jnds_col = jnds[col_name]
+          if clsrow[i] and clsrow[i] != jnds_col:
+              mylog.logm('ADI', "updnodes loop lo {}".format(col_name))
+              aq1 = "Update bds_nodeinfo set {} = '{}' where CLUSTER_OCID ='{}'".format(col_name, jnds_col, jnds["CLUSTER_OCID"])
+              aq2 = "Insert into bds_clusterinfo_logs(CLUSTER_OCID,CLUSTER_NAME,OLD_VALUE,NEW_VALUE,COL_CHANGE,COMMENTS,TENANT_OCID,CUSTOMERNAME) values ('{}','{}','{}','{}','{}','{}','{}','{}')".format(jnds["CLUSTER_OCID"],jnds_col, clsrow[0], jnds_col, col_name, "{} Change".format(col_name), jnds["TENANT_OCID"], jnds["CUSTOMERNAME"])
+              aq1_arr.append(aq1)
+              aq2_arr.append(aq2)
+              updflag=True
+      aq1_str = '\n'.join(aq1_arr)
+      aq2_str = '\n'.join(aq2_arr)
+      cur.execute(aq1_str)
+      cur.execute(aq2_str)
+      db.commit()
+    except:
+      mylog.logm('ADI', "*****  updnodes error  *****")
+    
     """
     if clsrow[0]:
         if clsrow[0] != jnds["NODESTATE"]:
@@ -644,11 +669,14 @@ def updnodes(jnds,un,db):
         cur.execute(aq2)
         mylog.logm('INFO',aq1)
         updflag=True
+    
     db.commit()
     """
-    
+
     if updflag:
        un+=1
+
+    mylog.logm('ADI', "*****  updnodes exit  *****")
     return un
 
 @timing
